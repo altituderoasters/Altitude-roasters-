@@ -465,6 +465,12 @@
   .step-pane{padding:20px;}
   .step-pane h3{font-size:1.3rem;margin-bottom:4px;}
   .step-pane .step-sub{color:var(--ink-soft);font-size:0.85rem;margin-bottom:20px;}
+  .confirm-icon{
+    width:48px;height:48px;border-radius:50%;
+    background:var(--sage);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:24px;margin-bottom:16px;
+  }
   .field{margin-bottom:14px;}
   .field label{
     display:block;font-size:0.78rem;font-weight:600;color:var(--ink-soft);
@@ -482,14 +488,6 @@
   }
   .field-row{display:flex;gap:10px;}
   .field-row .field{flex:1;}
-  .fulfil-options{display:flex;gap:8px;margin-bottom:4px;}
-  .fulfil-opt{
-    flex:1;padding:12px 8px;text-align:center;
-    border:1px solid var(--line);border-radius:8px;
-    font-size:0.82rem;font-weight:600;color:var(--ink-soft);
-    transition:all 0.15s ease;
-  }
-  .fulfil-opt.active{border-color:var(--ink);color:var(--ink);background:var(--parchment);}
   .pay-note{
     display:flex;align-items:center;gap:8px;
     font-size:0.76rem;color:var(--ink-soft);
@@ -588,38 +586,35 @@
     </div>
 
     <div class="step-pane" id="stepDetails">
-      <h3>Your details</h3>
-      <p class="step-sub">So we know what you ordered and where it's going.</p>
-
-      <div class="fulfil-options" id="fulfilOptions">
-        <button class="fulfil-opt" data-val="Table">Table</button>
-        <button class="fulfil-opt active" data-val="Pickup">Pickup</button>
-        <button class="fulfil-opt" data-val="Delivery">Delivery</button>
-      </div>
+      <h3>Your table order</h3>
+      <p class="step-sub">So we know what you ordered and which table to bring it to.</p>
 
       <div class="field"><label>Name</label><input type="text" id="custName" placeholder="Full name"></div>
       <div class="field"><label>Phone</label><input type="tel" id="custPhone" placeholder="+965 ..."></div>
-      <div class="field" id="deliveryField" style="display:none;">
-        <label>Delivery address</label>
-        <textarea id="custAddress" rows="2" placeholder="Block, street, building"></textarea>
-      </div>
-      <div class="field" id="tableField" style="display:none;">
+      <div class="field" id="tableField">
         <label>Table number</label>
         <input type="text" id="custTable" placeholder="e.g. 7" inputmode="numeric">
       </div>
 
-      <button class="primary-btn" id="toPaymentBtn">Continue to payment</button>
+      <button class="primary-btn" id="toPaymentBtn">Review order</button>
     </div>
 
     <div class="step-pane" id="stepPayment" style="display:none;">
       <span class="back-link" id="backToDetails">&larr; Back</span>
-      <h3>Payment</h3>
-      <p class="step-sub">You'll be taken to a secure Tap payment page to finish paying — card, KNET, or Apple Pay.</p>
+      <h3>Review your order</h3>
+      <p class="step-sub">We'll send this straight to our staff. Pay your waiter at the table when your order arrives.</p>
 
       <div class="order-summary-mini" id="paySummary"></div>
 
-      <button class="primary-btn" id="payBtn">Continue to secure payment — <span id="payAmount">KD 0.000</span></button>
-      <p class="pay-note" id="payNote">🔒 You'll pay on Tap's own payment page — we never see or store your card details.</p>
+      <button class="primary-btn" id="payBtn">Place order</button>
+      <p class="pay-note" id="payNote"></p>
+    </div>
+
+    <div class="step-pane" id="stepConfirmed" style="display:none;">
+      <div class="confirm-icon">&#10003;</div>
+      <h3>Order sent!</h3>
+      <p class="step-sub" id="confirmedMsg">Your order has been sent to our staff. A waiter will bring your bill to the table shortly.</p>
+      <button class="primary-btn" id="confirmedDoneBtn">Done</button>
     </div>
   </div>
 </div>
@@ -781,7 +776,6 @@ const ITEM_VARIANTS = {
   ],
 };
 const cart = {};
-let fulfilType = 'Pickup';
 
 function renderNav(){
   const nav = document.getElementById('catNav');
@@ -975,6 +969,7 @@ const checkoutModal = document.getElementById('checkoutModal');
 const checkoutOverlay = document.getElementById('checkoutOverlay');
 const stepDetails = document.getElementById('stepDetails');
 const stepPayment = document.getElementById('stepPayment');
+const stepConfirmed = document.getElementById('stepConfirmed');
 const segA = document.getElementById('segA'), segB = document.getElementById('segB');
 let checkoutDetails = null;
 
@@ -989,44 +984,31 @@ function closeCheckout(){
   checkoutOverlay.classList.remove('show');
   checkoutModal.classList.remove('show');
   // Reset so the next time checkout opens, it starts from step one, not
-  // wherever the customer left off (e.g. mid-payment).
+  // wherever the customer left off.
   goToStep('details');
   document.getElementById('custTable').value = '';
-  document.getElementById('custAddress').value = '';
 }
 
 document.getElementById('checkoutClose').addEventListener('click', closeCheckout);
 checkoutOverlay.addEventListener('click', closeCheckout);
 
-document.querySelectorAll('.fulfil-opt').forEach(function(btn){
-  btn.addEventListener('click', function(){
-    document.querySelectorAll('.fulfil-opt').forEach(function(b){ b.classList.remove('active'); });
-    btn.classList.add('active');
-    fulfilType = btn.dataset.val;
-    document.getElementById('deliveryField').style.display = fulfilType==='Delivery' ? 'block' : 'none';
-    document.getElementById('tableField').style.display = fulfilType==='Table' ? 'block' : 'none';
-  });
-});
-
 function goToStep(step){
   stepDetails.style.display = step==='details' ? 'block':'none';
   stepPayment.style.display = step==='payment' ? 'block':'none';
+  stepConfirmed.style.display = step==='confirmed' ? 'block':'none';
   segA.classList.toggle('done', step!=='none');
-  segB.classList.toggle('done', step==='payment');
+  segB.classList.toggle('done', step==='payment' || step==='confirmed');
 }
 
 document.getElementById('toPaymentBtn').addEventListener('click', function(){
   const name = document.getElementById('custName').value.trim();
   const phone = document.getElementById('custPhone').value.trim();
+  const tableNumber = document.getElementById('custTable').value.trim();
   if(!name || !phone){
     alert('Please add your name and phone number.');
     return;
   }
-  if(fulfilType==='Delivery' && !document.getElementById('custAddress').value.trim()){
-    alert('Please add a delivery address.');
-    return;
-  }
-  if(fulfilType==='Table' && !document.getElementById('custTable').value.trim()){
+  if(!tableNumber){
     alert('Please add your table number.');
     return;
   }
@@ -1034,9 +1016,7 @@ document.getElementById('toPaymentBtn').addEventListener('click', function(){
   checkoutDetails = {
     name: name,
     phone: phone,
-    fulfilment: fulfilType,
-    address: document.getElementById('custAddress').value.trim(),
-    tableNumber: document.getElementById('custTable').value.trim(),
+    tableNumber: tableNumber,
   };
 
   const summary = document.getElementById('paySummary');
@@ -1046,7 +1026,7 @@ document.getElementById('toPaymentBtn').addEventListener('click', function(){
     return '<div class="osm-row"><span>' + item.name + ' \u00d7 ' + qty + '</span><span>' + fmt(item.price*qty) + '</span></div>';
   }).join('');
   summary.innerHTML = lines + '<div class="osm-total"><span>Total</span><span>' + fmt(cartTotal()) + '</span></div>';
-  document.getElementById('payAmount').textContent = fmt(cartTotal());
+
   goToStep('payment');
 });
 
@@ -1055,34 +1035,41 @@ document.getElementById('backToDetails').addEventListener('click', function(){ g
 document.getElementById('payBtn').addEventListener('click', async function(){
   const btn = this;
   const note = document.getElementById('payNote');
+
   btn.disabled = true;
-  btn.textContent = 'Connecting to payment…';
-  note.textContent = "Please don't close this window.";
+  btn.textContent = 'Sending order…';
 
   const items = Object.entries(cart).map(function(pair){
     return { id: pair[0], qty: pair[1] };
   });
 
   try {
-    const res = await fetch('/api/create-charge', {
+    const res = await fetch('/api/place-table-order', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ items: items, customer: checkoutDetails }),
     });
     const data = await res.json();
 
-    if(!res.ok || !data.url){
-      throw new Error(data.error || 'Could not start payment.');
+    if(!res.ok || !data.ok){
+      throw new Error(data.error || 'Could not send your order. Please try again or flag a waiter.');
     }
 
-    // Leaving the page now — Tap's hosted payment page takes over,
-    // then redirects back to payment-return.html when done.
-    window.location.href = data.url;
+    document.getElementById('confirmedMsg').textContent =
+      'Your order has been sent to our staff. A waiter will bring your bill to table ' +
+      checkoutDetails.tableNumber + ' shortly.';
+    goToStep('confirmed');
   } catch(err){
     btn.disabled = false;
-    btn.innerHTML = 'Continue to secure payment — <span id="payAmount">' + fmt(cartTotal()) + '</span>';
+    btn.textContent = 'Place order';
     note.textContent = err.message || 'Something went wrong. Please try again.';
   }
+});
+
+document.getElementById('confirmedDoneBtn').addEventListener('click', function(){
+  closeCheckout();
+  Object.keys(cart).forEach(function(id){ delete cart[id]; });
+  syncCartUI();
 });
 
 renderNav();
