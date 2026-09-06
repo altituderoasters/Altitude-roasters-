@@ -784,18 +784,79 @@ function renderNav(){
   ).join('');
   nav.querySelectorAll('.cat-pill').forEach(btn=>{
     btn.addEventListener('click', ()=>{
+      setActiveCat(btn.dataset.cat);
+      // Scroll-spy would otherwise fight the smooth-scroll animation and
+      // flicker the highlight through every category it passes on the way
+      // — suppress it briefly while the scroll settles.
+      suppressSpyUntilScrollEnds();
       document.getElementById('sec-' + btn.dataset.cat).scrollIntoView({behavior:'smooth', block:'start'});
     });
   });
 }
 
+function setActiveCat(cat){
+  document.querySelectorAll('.cat-pill').forEach(function(b){
+    b.classList.toggle('active', b.dataset.cat === cat);
+  });
+  const activeBtn = document.querySelector('.cat-pill[data-cat="' + cat + '"]');
+  if(activeBtn){
+    activeBtn.scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'});
+  }
+}
+
+let spySuppressed = false;
+let spySuppressTimer = null;
+function suppressSpyUntilScrollEnds(){
+  spySuppressed = true;
+  clearTimeout(spySuppressTimer);
+  spySuppressTimer = setTimeout(function(){ spySuppressed = false; }, 700);
+}
+
+function setupCategoryScrollSpy(){
+  const navEl = document.getElementById('catNav');
+  const navHeight = navEl.offsetHeight;
+  const observer = new IntersectionObserver(function(entries){
+    if(spySuppressed) return;
+    // Pick whichever observed section is closest to just under the sticky
+    // nav bar — that's the one the user is actually looking at.
+    let best = null;
+    entries.forEach(function(entry){
+      if(!entry.isIntersecting) return;
+      if(!best || entry.boundingClientRect.top < best.boundingClientRect.top){
+        best = entry;
+      }
+    });
+    if(best){
+      setActiveCat(best.target.id.replace('sec-', ''));
+    }
+  }, {
+    rootMargin: '-' + (navHeight + 8) + 'px 0px -70% 0px',
+    threshold: 0,
+  });
+  CATS.forEach(function(cat){
+    const sec = document.getElementById('sec-' + cat);
+    if(sec) observer.observe(sec);
+  });
+}
+
+// A few items list "Hot/Iced" together but have two separate embedded
+// photos (one per variant). The home menu thumbnail can only show one —
+// this lets us pick which variant's photo represents the item in the
+// scrolling list, independent of which variant opens by default in the
+// item's detail popup.
+const HOME_THUMB_OVERRIDE = {
+  'hojicha-latte': 'hojicha-latte-hot',
+};
+
 function renderMenu(){
   const main = document.getElementById('menuMain');
   main.innerHTML = CATS.map(cat => {
-    const items = MENU.filter(i=>i.cat===cat).map(item => (
+    const items = MENU.filter(i=>i.cat===cat).map(item => {
+      const thumbId = HOME_THUMB_OVERRIDE[item.id] || item.id;
+      return (
       '<div class="item-row" data-id="' + item.id + '">' +
         '<div class="item-thumb">' +
-          '<img src="' + (EMBEDDED_IMAGES[item.id] || ('images/' + item.id + '.jpg')) + '" alt="' + item.name + '" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
+          '<img src="' + (EMBEDDED_IMAGES[thumbId] || ('images/' + thumbId + '.jpg')) + '" alt="' + item.name + '" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
           '<div class="thumb-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg></div>' +
         '</div>' +
         '<div class="item-info">' +
@@ -805,7 +866,8 @@ function renderMenu(){
         '</div>' +
         '<div class="item-action" id="action-' + item.id + '"></div>' +
       '</div>'
-    )).join('');
+      );
+    }).join('');
     return '<section id="sec-' + cat + '"><h2 class="section-title">' + cat + '</h2><div class="item-list">' + items + '</div></section>';
   }).join('');
   MENU.forEach(item => renderItemAction(item.id));
@@ -1074,6 +1136,7 @@ document.getElementById('confirmedDoneBtn').addEventListener('click', function()
 
 renderNav();
 renderMenu();
+setupCategoryScrollSpy();
 syncCartUI();
 
 // Keep the "ALTITUDE ROASTERS" brand wordmark exactly as wide as the
