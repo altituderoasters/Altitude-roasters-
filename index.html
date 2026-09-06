@@ -130,7 +130,7 @@
     margin:16px auto 0;
     color:#4a4a48;
     font-size:14px;
-    max-width:30em;
+    max-width:380px;
     line-height:1.6;
   }
   .hero-cta{
@@ -1097,6 +1097,7 @@ syncCartUI();
   if(!heroHeading || !brandName) return;
 
   var baseFontSize = parseFloat(getComputedStyle(brandName).fontSize);
+  var lastWidth = window.innerWidth;
 
   function fitBrandWidth(){
     // Reset to the CSS baseline first so repeated calls don't compound.
@@ -1104,10 +1105,18 @@ syncCartUI();
 
     var targetWidth = heroHeading.getBoundingClientRect().width;
     var currentWidth = brandName.getBoundingClientRect().width;
-    if(!targetWidth || !currentWidth) return;
+    // Guard against transient/zero measurements (e.g. mobile browsers
+    // firing resize when the address bar hides/shows during scroll,
+    // which can momentarily report a bad layout width).
+    if(!targetWidth || !currentWidth || targetWidth < 10 || currentWidth < 10) return;
 
     var scale = targetWidth / currentWidth;
-    brandName.style.fontSize = (baseFontSize * scale) + 'px';
+    var newSize = baseFontSize * scale;
+    // Sanity bound: never let it collapse to an unreadably tiny size
+    // or blow up absurdly large due to a bad reading.
+    if(newSize < 8 || newSize > baseFontSize * 3) return;
+
+    brandName.style.fontSize = newSize + 'px';
   }
 
   var run = function(){ requestAnimationFrame(fitBrandWidth); };
@@ -1120,6 +1129,11 @@ syncCartUI();
 
   var resizeTimer;
   window.addEventListener('resize', function(){
+    // Mobile browsers fire 'resize' when the address bar collapses or
+    // expands during scrolling; that only changes innerHeight, not
+    // innerWidth. Ignore those so scrolling never re-triggers this.
+    if(window.innerWidth === lastWidth) return;
+    lastWidth = window.innerWidth;
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(run, 150);
   });
