@@ -1,23 +1,20 @@
-// POST /api/create-charge
-// Body: { items: [{id, qty}], customer: { name, phone, fulfilment, address, tableNumber } }
-// Returns: { url, orderId }  — url is Tap's hosted payment page; redirect the browser there.
+// Vercel Serverless Function — creates a MyFatoorah invoice/payment link.
 //
-// SECURITY NOTE: the total charged is always recomputed here from lib/menu-data.js.
-// We never trust a price or total sent from the browser.
+// SETUP REQUIRED (one-time, in the Vercel dashboard):
+//   Project → Settings → Environment Variables → add:
+//     MYFATOORAH_API_KEY   = <your MyFatoorah API token>
+//     MYFATOORAH_ENV       = "live"  (or "test" to use MyFatoorah's test API)
+//
+// Never put the API key directly in this file or commit it to GitHub —
+// environment variables keep it server-side only, which is required for
+// PCI-safe payment handling.
 
-const { findItem } = require('../lib/menu-data');
+const MENU_ITEMS = require('./_lib/menu-items');
 
-function generateOrderId() {
-  const n = Math.floor(100000 + Math.random() * 900000);
-  return `AR-${n}`;
-}
-
-// Kuwait phone numbers: strip spaces/dashes/leading +965 if present, keep digits only.
-function parsePhone(raw) {
-  const digits = String(raw || '').replace(/\D/g, '');
-  const withoutCountry = digits.startsWith('965') ? digits.slice(3) : digits;
-  return withoutCountry || digits;
-}
+const MYFATOORAH_BASE =
+  process.env.MYFATOORAH_ENV === 'test'
+    ? 'https://apitest.myfatoorah.com'
+    : 'https://api.myfatoorah.com';
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') {
@@ -25,92 +22,85 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const TAP_SECRET_KEY = process.env.TAP_SECRET_KEY;
-  if (!TAP_SECRET_KEY) {
-    console.error('TAP_SECRET_KEY is not set');
-    res.status(500).json({ error: 'Payments are not configured yet.' });
-    return;
-  }
-
   try {
-    const body = req.body || {};
-    const items = Array.isArray(body.items) ? body.items : [];
-    const customer = body.customer || {};
+    const { items, customer } = req.body || {};
 
-    if (items.length === 0) {
-      res.status(400).json({ error: 'Cart is empty.' });
-      return;
-    }
-    if (!customer.name || !customer.phone) {
-      res.status(400).json({ error: 'Name and phone are required.' });
+    if (!Array.isArray(items) || items.length === 0) {
+      res.status(400).json({ error: 'Your cart is empty.' });
       return;
     }
 
-    // Recompute total server-side from the authoritative price list.
+    // Recompute the total server-side from our own price list — never
+    // trust a total (or per-item price) sent from the browser.
     let total = 0;
-    const lineItemsForMetadata = [];
     for (const line of items) {
-      const item = findItem(line.id);
-      const qty = Math.max(1, Math.min(50, parseInt(line.qty, 10) || 0));
-      if (!item || qty === 0) {
-        res.status(400).json({ error: `Unknown item or quantity: ${line.id}` });
+      const menuItem = MENU_ITEMS[line.id];
+      const qty = Number(line.qty);
+      if (!menuItem || !Number.isFinite(qty) || qty <= 0) {
+        res.status(400).json({ error: 'Invalid item in cart: ' + line.id });
         return;
       }
-      total += item.price * qty;
-      lineItemsForMetadata.push(`${item.id}x${qty}`);
+      total += menuItem.price * qty;
     }
-    total = Math.round(total * 1000) / 1000; // KWD has 3 decimal places
+    // KWD uses 3 decimal places.
+    total = Math.round(total * 1000) / 1000;
 
-    const orderId = generateOrderId();
-    const siteUrl = process.env.SITE_URL || `https://${req.headers.host}`;
-
-    const chargePayload = {
-      amount: total,
-      currency: 'KWD',
-      customer_initiated: true,
-      threeDSecure: true,
-      save_card: false,
-      description: `Altitude Roasters order ${orderId}`,
-      customer: {
-        first_name: String(customer.name).slice(0, 60),
-        phone: {
-          country_code: '965',
-          number: parsePhone(customer.phone),
-        },
-      },
-      source: { id: 'src_all' }, // lets the customer choose KNET, cards, Apple Pay, etc.
-      redirect: { url: `${siteUrl}/payment-return.html` },
-      post: { url: `${siteUrl}/api/tap-webhook` },
-      reference: { transaction: orderId, order: orderId },
-      metadata: {
-        order_id: orderId,
-        fulfilment: String(customer.fulfilment || '').slice(0, 20),
-        address: String(customer.address || '').slice(0, 200),
-        table_number: String(customer.tableNumber || '').slice(0, 20),
-        items: lineItemsForMetadata.join(','),
-      },
-    };
-
-    const tapRes = await fetch('https://api.tap.company/v2/charges', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${TAP_SECRET_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(chargePayload),
-    });
-
-    const tapData = await tapRes.json();
-
-    if (!tapRes.ok || !tapData?.transaction?.url) {
-      console.error('Tap charge creation failed:', tapData);
-      res.status(502).json({ error: 'Could not start payment. Please try again.' });
+    if (total <= 0) {
+      res.status(400).json({ error: 'Invalid order total.' });
       return;
     }
 
-    res.status(200).json({ url: tapData.transaction.url, orderId });
+    const apiKey = process.env.MYFATOORAH_API_KEY;
+    if (!apiKey) {
+      console.error('MYFATOORAH_API_KEY is not set.');
+      res.status(500).json({ error: 'Payment gateway is not configured.' });
+      return;
+    }
+
+    // Build an absolute URL back to this same site for MyFatoorah to
+    // redirect to once the customer finishes paying.
+    const host = req.headers['x-forwarded-host'] || req.headers.host;
+    const origin = 'https://' + host;
+    const orderRef = 'AR-' + Date.now();
+
+    const payload = {
+      CustomerName: (customer && customer.name) || 'Guest',
+      NotificationOption: 'LNK', // generate a payment link only — no SMS/email sent by MyFatoorah
+      InvoiceValue: total,
+      CustomerMobile: (customer && customer.phone) || undefined,
+      DisplayCurrencyIso: 'KWD',
+      CallBackUrl: origin + '/payment-return.html?ref=' + orderRef,
+      ErrorUrl: origin + '/payment-return.html?ref=' + orderRef + '&status=error',
+      Language: 'EN',
+      CustomerReference: orderRef,
+      SourceInfo: 'Altitude Roasters Menu',
+    };
+
+    const mfRes = await fetch(MYFATOORAH_BASE + '/v2/SendPayment', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + apiKey,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const mfData = await mfRes.json();
+
+    if (!mfRes.ok || !mfData.IsSuccess || !mfData.Data || !mfData.Data.InvoiceURL) {
+      const msg =
+        (mfData.ValidationErrors && mfData.ValidationErrors.length
+          ? mfData.ValidationErrors.map((e) => e.Error).join(', ')
+          : mfData.Message) || 'Could not start payment.';
+      console.error('MyFatoorah SendPayment failed:', mfData);
+      res.status(502).json({ error: msg });
+      return;
+    }
+
+    res.status(200).json({ url: mfData.Data.InvoiceURL });
   } catch (err) {
     console.error('create-charge error:', err);
-    res.status(500).json({ error: 'Something went wrong starting payment.' });
+    res.status(500).json({ error: 'Something went wrong. Please try again.' });
   }
 };

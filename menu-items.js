@@ -1,0 +1,57 @@
+// Shared menu data for serverless functions — id, display name, and price.
+// This is the source of truth for order totals and Slack/receipt text; it
+// is duplicated from the MENU array in index.html on purpose (the browser
+// copy can be tampered with, so pricing must never be trusted from there).
+// If you add/remove/reprice a menu item in index.html, update this too.
+
+const MENU_ITEMS = {
+  'earl-grey-cheesecake': { name: 'Earl Grey Cheesecake', price: 3.50 },
+  'tiramisu': { name: 'Tiramisu', price: 3.50 },
+  'creme-brulee': { name: 'Crème Brûlée', price: 3.50 },
+  'banana-bread': { name: 'Moist Banana Bread', price: 2.00 },
+  'chocolate-cake': { name: 'Chocolate Cake', price: 3.50 },
+  'salted-caramel-tart': { name: 'Salted Caramel Tart', price: 3.50 },
+  'club-sandwich': { name: 'Club Sandwich', price: 3.00 },
+  'smoked-turkey': { name: 'Smoked Turkey Sandwich', price: 3.50 },
+  'avocado-tartine': { name: 'Avocado Tartine', price: 3.00 },
+  'chorizo-focaccia': { name: 'Chorizo and Manchego Focaccia', price: 3.25 },
+  'halloumi-sandwich': { name: 'Grilled Halloumi Sandwich', price: 3.25 },
+  'smoked-salmon-bagel': { name: 'Smoked Salmon Bagel', price: 3.25 },
+  'plain-croissant': { name: 'Plain Croissant', price: 1.20 },
+  'almond-croissant': { name: 'Almond Croissant', price: 1.65 },
+  'pain-au-chocolat': { name: 'Pain au Chocolat', price: 1.65 },
+  'espresso-cookie': { name: 'Chocolate Espresso Cookie', price: 1.50 },
+  'raspberry-mille-feuille': { name: 'Raspberry Mille Feuille', price: 2.50 },
+  'cinnamon-bun': { name: 'Cinnamon Bun', price: 2.00 },
+  'cardamom-bun': { name: 'Cardamom Bun', price: 2.00 },
+  'canele': { name: 'Canelé', price: 2.00 },
+  'espresso': { name: 'Espresso', price: 1.10 },
+  'origin-espresso': { name: 'Origin of the Month Espresso', price: 1.35 },
+  'americano': { name: 'Americano', price: 1.30 },
+  'origin-americano': { name: 'Americano Origin of the Month', price: 1.55 },
+  'cold-brew': { name: 'Cold Brew (Iced)', price: 2.00 },
+  'chemex': { name: 'Chemex Filtered Coffee (Hot/Iced)', price: 2.00 },
+  'world-chemex': { name: 'World Class Chemex (Hot/Iced)', price: 4.00 },
+  'oolong': { name: 'Oolong Tea', price: 2.50 },
+  'red-tea': { name: 'Red Tea (Hot/Iced)', price: 2.00 },
+  'matcha-latte': { name: 'Matcha Latte (Hot/Iced)', price: 2.20 },
+  'hojicha-latte': { name: 'Hojicha Latte (Hot/Iced)', price: 2.20 },
+  'spiced-hojicha': { name: 'Spiced Hojicha Latte (Iced)', price: 2.50 },
+  'alticcino': { name: 'Alticcino (Iced)', price: 2.50 },
+  'cortado': { name: 'Cortado (Hot)', price: 1.25 },
+  'origin-cortado': { name: 'Origin of the Month Cortado (Hot)', price: 1.50 },
+  'strawberry-delight': { name: 'Strawberry Delight (Iced)', price: 2.50 },
+  'flat-white': { name: 'Flat White (Hot/Iced)', price: 1.85 },
+  'flat-white-origin': { name: 'Flat White Origin of the Month (Hot/Iced)', price: 2.10 },
+  'pumpkin-latte': { name: 'Pumpkin Spiced Latte (Hot)', price: 2.50 },
+  'mocha-latte': { name: 'Mocha Latte (Hot/Iced)', price: 2.50 },
+  'hot-chocolate': { name: 'Hot Chocolate (Hot)', price: 2.00 },
+  'the-zen': { name: 'The Zen', price: 2.50 },
+  'mont-blanc': { name: 'Mont Blanc', price: 2.50 },
+  'amber-flow': { name: 'Amber Flow', price: 2.50 },
+  'disco-matcha': { name: 'Disco Matcha', price: 2.50 },
+  'the-marlon': { name: 'The Marlon', price: 2.50 },
+  'the-veronica': { name: 'The Veronica', price: 2.50 },
+};
+
+module.exports = MENU_ITEMS;
