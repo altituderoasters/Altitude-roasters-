@@ -13,7 +13,7 @@
 <meta name="theme-color" content="#000000">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:opsz,wght@72,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:opsz,wght@72,700&family=Inter:wght@400;500;600&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
 @font-face{
     font-family:'Big Shoulders Custom';
@@ -75,6 +75,20 @@
     transition:opacity 0.15s ease;
   }
   .cart-btn:hover{opacity:0.7;}
+  .topbar-actions{grid-column:3;justify-self:end;display:flex;align-items:center;gap:10px;}
+  .lang-btn{
+    display:flex;align-items:center;gap:4px;
+    background:none;color:#344243;
+    padding:6px 8px;border:1px solid rgba(52,66,67,0.25);border-radius:100px;
+    font-size:0.72rem;font-weight:700;letter-spacing:0.02em;
+    transition:opacity 0.15s ease;
+  }
+  .lang-btn:hover{opacity:0.7;}
+  html[dir="rtl"] body{font-family:'Tajawal',sans-serif;}
+  html[dir="rtl"] h1,html[dir="rtl"] h2,html[dir="rtl"] h3,html[dir="rtl"] .display,
+  html[dir="rtl"] .brand .name{font-family:'Tajawal',sans-serif;letter-spacing:0;}
+  html[dir="rtl"] .item-price,html[dir="rtl"] .imd-price,html[dir="rtl"] .amount,
+  html[dir="rtl"] .cl-price{font-variant-numeric:normal;}
   .cart-badge{
     position:absolute;
     top:0;right:0;
@@ -554,17 +568,23 @@
   <div class="brand">
     <span class="name">Altitude Roasters</span>
   </div>
-  <button class="cart-btn" id="cartOpenBtn" aria-label="Cart">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#344243" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M6 8h12l-1.2 11a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
-    <span class="cart-badge" id="cartBadge" style="display:none;">0</span>
-  </button>
+  <div class="topbar-actions">
+    <button class="lang-btn" id="langToggleBtn" aria-label="Language">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#344243" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+      <span id="langToggleLabel">عربي</span>
+    </button>
+    <button class="cart-btn" id="cartOpenBtn" aria-label="Cart">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#344243" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M6 8h12l-1.2 11a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+      <span class="cart-badge" id="cartBadge" style="display:none;">0</span>
+    </button>
+  </div>
 </div>
 
 <div class="hero">
   <div class="hero-card">
-    <h1>THE MENU</h1>
-    <p class="tag">Coffee, tea, mocktails, and food made in house. Tap anything to add it to your order.</p>
-    <button class="hero-cta" onclick="document.getElementById('catNav').scrollIntoView({behavior:'smooth'});">Browse the menu</button>
+    <h1 id="heroTitle">THE MENU</h1>
+    <p class="tag" id="heroTag">Coffee, tea, mocktails, and food made in house. Tap anything to add it to your order.</p>
+    <button class="hero-cta" id="heroBrowseBtn" onclick="document.getElementById('catNav').scrollIntoView({behavior:'smooth'});">Browse the menu</button>
   </div>
 </div>
 
@@ -583,12 +603,12 @@
 <div class="overlay" id="cartOverlay"></div>
 <div class="drawer" id="cartDrawer">
   <div class="drawer-head">
-    <h2>Your order</h2>
+    <h2 id="cartTitle">Your order</h2>
     <button class="close-x" id="cartCloseBtn">&times;</button>
   </div>
   <div class="drawer-body" id="cartBody"></div>
   <div class="drawer-foot" id="cartFoot">
-    <div class="subtotal-row"><span>Subtotal</span><span class="amount" id="cartSubtotal">KD 0.000</span></div>
+    <div class="subtotal-row"><span id="subtotalLabel">Subtotal</span><span class="amount" id="cartSubtotal">KD 0.000</span></div>
     <button class="primary-btn" id="checkoutBtn" disabled>Checkout</button>
   </div>
 </div>
@@ -605,13 +625,13 @@
     </div>
 
     <div class="step-pane" id="stepDetails">
-      <h3>Your table order</h3>
-      <p class="step-sub">So we know what you ordered and which table to bring it to.</p>
+      <h3 id="detailsTitle">Your table order</h3>
+      <p class="step-sub" id="detailsSub">So we know what you ordered and which table to bring it to.</p>
 
-      <div class="field"><label>Name</label><input type="text" id="custName" placeholder="Full name"></div>
-      <div class="field"><label>Phone</label><input type="tel" id="custPhone" placeholder="+965 ..."></div>
+      <div class="field"><label id="nameLabel">Name</label><input type="text" id="custName" placeholder="Full name"></div>
+      <div class="field"><label id="phoneLabel">Phone</label><input type="tel" id="custPhone" placeholder="+965 ..."></div>
       <div class="field" id="tableField">
-        <label>Table number</label>
+        <label id="tableLabel">Table number</label>
         <input type="text" id="custTable" placeholder="e.g. 7" inputmode="numeric">
       </div>
 
@@ -620,8 +640,8 @@
 
     <div class="step-pane" id="stepPayment" style="display:none;">
       <span class="back-link" id="backToDetails">&larr; Back</span>
-      <h3>Review your order</h3>
-      <p class="step-sub">We'll send this straight to our staff. Pay your waiter at the table when your order arrives.</p>
+      <h3 id="reviewTitle">Review your order</h3>
+      <p class="step-sub" id="reviewSub">We'll send this straight to our staff. Pay your waiter at the table when your order arrives.</p>
 
       <div class="order-summary-mini" id="paySummary"></div>
 
@@ -631,7 +651,7 @@
 
     <div class="step-pane" id="stepConfirmed" style="display:none;">
       <div class="confirm-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#344243" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="48" height="48"><circle cx="12" cy="12" r="10" fill="#fff"/><path d="M7.5 12.5l3 3 6-6.5"/></svg></div>
-      <h3>Order sent!</h3>
+      <h3 id="sentTitle">Order sent!</h3>
       <p class="step-sub" id="confirmedMsg">Your order has been sent to our staff. A waiter will bring your bill to the table shortly.</p>
       <button class="primary-btn" id="confirmedDoneBtn">Done</button>
     </div>
@@ -775,6 +795,169 @@ const MENU = [
 
 const CATS = [...new Set(MENU.map(i => i.cat))];
 
+/* ================= ARABIC TRANSLATIONS ================= */
+let currentLang = 'en';
+
+const CAT_AR = {
+  'Sandwiches': 'الساندويتشات',
+  'Pastries': 'المعجنات',
+  'Desserts': 'الحلويات',
+  'Black': 'القهوة السوداء',
+  'Teas': 'الشاي',
+  'White': 'مشروبات الحليب',
+  'Mocktail Society': 'المشروبات المميزة'
+};
+
+const ITEM_AR = {
+  'club-sandwich': { name:'كلوب ساندويتش', desc:'طبقات من التركي ولحم البيكن البقري المقرمش مع أيولي على خبز بريوش بني محمص' },
+  'smoked-turkey': { name:'ساندويتش التركي المدخن', desc:'تركي مدخن مع خس مقرمش وطماطم كرزية وبصل مخلل على خبز ساوردو محمص مع مايونيز العسل والخردل' },
+  'avocado-tartine': { name:'تارتين الأفوكادو', desc:'أفوكادو مهروس على خبز الريف المحمص مع قشر الليمون ورقائق الفلفل الحار وزيت الزيتون' },
+  'chorizo-focaccia': { name:'فوكاشيا التشوريزو وجبنة المانشيغو', desc:'فوكاشيا دافئة بطبقات من التشوريزو الحار وجبنة المانشيغو الذائبة والفلفل المشوي' },
+  'halloumi-sandwich': { name:'ساندويتش الحلوم المشوي', desc:'حلوم مشوي وأفوكادو كريمي على خبز ساوردو محمص، مع خيار وطماطم وخس، ويُقدم مع صوص أيولي غني' },
+  'smoked-salmon-bagel': { name:'بيغل السالمون المدخن', desc:'سالمون مدخن مع جبنة كريمية وبصل مخلل وكبر على بيغل طري ومحمص' },
+
+  'plain-croissant': { name:'كرواسان', desc:'طبقات زبدية مقرمشة مخبوزة إلى درجة ذهبية مثالية' },
+  'almond-croissant': { name:'كرواسان اللوز', desc:'محشو بكريمة اللوز ومغطى بشرائح لوز محمصة' },
+  'pain-au-chocolat': { name:'كرواسان بالشوكولاتة', desc:'محشو بشوكولاتة غنية' },
+  'espresso-cookie': { name:'كوكيز الاسبريسو والشوكولاتة', desc:'كوكي طرية منكهة بالاسبريسو والكاكاو' },
+  'raspberry-mille-feuille': { name:'ميل فيه التوت', desc:'طبقات مقرمشة من العجينة مع كريمة وتوت' },
+  'cinnamon-bun': { name:'كعك السينامون', desc:'لفّات حلوة بنكهة البهارات' },
+  'cardamom-bun': { name:'كعك الهيل', desc:'كعكات معطرة بالتوابل بإيحاء دافئ من الهيل' },
+  'canele': { name:'كانيليه', desc:'حلو فرنسي كلاسيكي بقشرة مقرمشة وطري من الداخل مليء بنكهة الفانيلا' },
+
+  'earl-grey-cheesecake': { name:'تشيز كيك الايرل غراي', desc:'تشيز كيك كريمية منكهة بشاي إيرل غراي مع نفحات زهرية وحمضية' },
+  'tiramisu': { name:'تيراميسو', desc:'طبقات إيطالية كلاسيكية من بسكويت منقوع بالاسبريسو وكريمة الماسكاربوني مع رشة كاكاو' },
+  'creme-brulee': { name:'كريم بروليه', desc:'كاسترد بالفانيلا بقوام حريري تحت طبقة سكر محروقة' },
+  'banana-bread': { name:'كعكة الموز', desc:'كيكة طرية ولذيذة مصنوعة من موز ناضج بطعم طبيعي حلو' },
+  'chocolate-cake': { name:'كعكة الشوكولاتة', desc:'طبقات غنية من إسفنج الشوكولاتة والتغطية الكريمية، غنية وناعمة مع كل قضمة' },
+  'salted-caramel-tart': { name:'تارت الكراميل المملح', desc:'قشرة معجنات زبدية مقرمشة محشوة بكراميل طري ذائب، مغطاة برقائق ملح البحر' },
+
+  'espresso': { name:'اسبريسو', desc:'قهوة غنية وقوية وعطرية' },
+  'origin-espresso': { name:'اسبريسو محصول الشهر', desc:'محصول موسمي ومميز' },
+  'americano': { name:'أميركانو (ساخن/مثلج)', desc:'اسبريسو مخفف بالماء' },
+  'origin-americano': { name:'أميركانو محصول الشهر (ساخن/مثلج)', desc:'اسبريسو محصول الشهر مُخفف بالماء' },
+  'cold-brew': { name:'كولد برو (مثلج)', desc:'منقوع لمدة ساعات' },
+  'chemex': { name:'فلتر كيميكس (ساخن/مثلج)', desc:'نكهات واضحة، مميزة، ورقيقة' },
+  'world-chemex': { name:'فلتر كيميكس محصول مستوى عالمي (ساخن/مثلج)', desc:'أعلى محاصيل القهوة لدينا، محضّرة بإتقان' },
+
+  'oolong': { name:'شاي أولونغ (ساخن/مثلج)', desc:'شاي بإيحاءات زهرية ولمسة خفيفة محمصة' },
+  'red-tea': { name:'الشاي الأحمر (ساخن/مثلج)', desc:'نكهات العسل والزهور وإيحاء شمع العسل' },
+  'matcha-latte': { name:'ماتشا لاتيه (ساخن/مثلج)', desc:'شاي الماتشا مع حليب محلى بالعسل' },
+  'hojicha-latte': { name:'هوجيتشا لاتيه (ساخن/مثلج)', desc:'خالٍ من الكافيين، محلى بالعسل، شاي ياباني محمص مع الحليب لإيحاء جوزي' },
+  'spiced-hojicha': { name:'سبايسد هوجيتشا لاتيه (مثلج)', desc:'هوجيتشا لاتيه بارد بإيحاء من البهارات الدافئة' },
+
+  'alticcino': { name:'ألتيتشينو (مثلج)', desc:'مشروب الكابتشينو البارد بإيحاء ناعم' },
+  'cortado': { name:'كورتادو (ساخن)', desc:'اسبريسو مع كمية خفيفة من الحليب' },
+  'origin-cortado': { name:'كورتادو محصول الشهر (ساخن)', desc:'اسبريسو محصول الشهر مع كمية خفيفة من الحليب' },
+  'strawberry-delight': { name:'ستروبيري ديلايت (مثلج)', desc:'فراولة وقهوة وحليب فوق الثلج' },
+  'flat-white': { name:'فلات وايت (ساخن/مثلج)', desc:'غني وناعم، اسبريسو مع حليب بقوام مخملي وكريمي' },
+  'flat-white-origin': { name:'فلات وايت محصول الشهر (ساخن/مثلج)', desc:'اسبريسو محصول الشهر مع الكمية المثالية من الحليب' },
+  'pumpkin-latte': { name:'بمبكن سبايسد لاتيه (ساخن)', desc:'اسبريسو مع حليب مبخر وإيحاء دافئ من بهارات اليقطين' },
+  'mocha-latte': { name:'موكا لاتيه (ساخن/مثلج)', desc:'اسبريسو، شوكولاتة، وحليب' },
+  'hot-chocolate': { name:'هوت شوكولات', desc:'كاكاو غني ودافئ مع رغوة ناعمة' },
+
+  'the-zen': { name:'الزين', desc:'ماء جوز الهند البارد مع شراب تايلاندي' },
+  'mont-blanc': { name:'مونت بلان', desc:'قهوة باردة، برتقال، كريمة، وبهارات' },
+  'amber-flow': { name:'أمبر فلو', desc:'تفاح، برتقال، كركديه، وقهوة باردة التخمير' },
+  'disco-matcha': { name:'ديسكو ماتشا', desc:'ماتشا، يوزو، ليمون، فانيليا، وشوكولاتة بيضاء' },
+  'the-marlon': { name:'مارلون', desc:'قهوة مع توت مشكّل ومياه فوارة' },
+  'the-veronica': { name:'فيرونيكا', desc:'ياسمين، يوزو، جينجر أيل، بهارات، وقهوة' }
+};
+
+const UI_AR = {
+  heroTitle: 'القائمة',
+  heroTag: 'قهوة وشاي ومشروبات مميزة وأطعمة محضرة في المقهى. اضغط على أي عنصر لإضافته لطلبك.',
+  heroBrowseBtn: 'تصفح القائمة',
+  cartTitle: 'طلبك',
+  subtotalLabel: 'المجموع الفرعي',
+  checkoutBtn: 'إتمام الطلب',
+  viewCart: 'عرض السلة',
+  detailsTitle: 'طلب طاولتك',
+  detailsSub: 'حتى نعرف ماذا طلبت وإلى أي طاولة نحضره.',
+  nameLabel: 'الاسم',
+  phoneLabel: 'الهاتف',
+  tableLabel: 'رقم الطاولة',
+  toPaymentBtn: 'مراجعة الطلب',
+  reviewTitle: 'راجع طلبك',
+  reviewSub: 'سنرسل هذا مباشرة لطاقم العمل. ادفع للنادل على الطاولة عند وصول طلبك.',
+  payBtn: 'إرسال الطلب',
+  sentTitle: 'تم إرسال الطلب!',
+  confirmedDoneBtn: 'تم',
+  addBtn: 'إضافة',
+  itemsWord: 'عناصر',
+  itemWord: 'عنصر'
+};
+const UI_EN = {
+  heroTitle: 'THE MENU',
+  heroTag: 'Coffee, tea, mocktails, and food made in house. Tap anything to add it to your order.',
+  heroBrowseBtn: 'Browse the menu',
+  cartTitle: 'Your order',
+  subtotalLabel: 'Subtotal',
+  checkoutBtn: 'Checkout',
+  viewCart: 'View cart',
+  detailsTitle: 'Your table order',
+  detailsSub: 'So we know what you ordered and which table to bring it to.',
+  nameLabel: 'Name',
+  phoneLabel: 'Phone',
+  tableLabel: 'Table number',
+  toPaymentBtn: 'Review order',
+  reviewTitle: 'Review your order',
+  reviewSub: "We'll send this straight to our staff. Pay your waiter at the table when your order arrives.",
+  payBtn: 'Place order',
+  sentTitle: 'Order sent!',
+  confirmedDoneBtn: 'Done',
+  addBtn: 'Add',
+  itemsWord: 'items',
+  itemWord: 'item'
+};
+
+const ARABIC_DIGITS = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+function toArabicDigits(str){
+  return String(str).replace(/[0-9]/g, d => ARABIC_DIGITS[d]);
+}
+function displayName(item){ return currentLang === 'ar' && ITEM_AR[item.id] ? ITEM_AR[item.id].name : item.name; }
+function displayDesc(item){ return currentLang === 'ar' && ITEM_AR[item.id] ? ITEM_AR[item.id].desc : item.desc; }
+function displayCat(cat){ return currentLang === 'ar' ? (CAT_AR[cat] || cat) : cat; }
+function t(key){ return (currentLang === 'ar' ? UI_AR : UI_EN)[key]; }
+
+function applyStaticTranslations(){
+  const ui = currentLang === 'ar' ? UI_AR : UI_EN;
+  document.getElementById('heroTitle').textContent = ui.heroTitle;
+  document.getElementById('heroTag').textContent = ui.heroTag;
+  document.getElementById('heroBrowseBtn').textContent = ui.heroBrowseBtn;
+  document.getElementById('cartTitle').textContent = ui.cartTitle;
+  document.getElementById('subtotalLabel').textContent = ui.subtotalLabel;
+  document.getElementById('checkoutBtn').textContent = ui.checkoutBtn;
+  document.getElementById('cartBarBtn').textContent = ui.viewCart;
+  document.getElementById('detailsTitle').textContent = ui.detailsTitle;
+  document.getElementById('detailsSub').textContent = ui.detailsSub;
+  document.getElementById('nameLabel').textContent = ui.nameLabel;
+  document.getElementById('phoneLabel').textContent = ui.phoneLabel;
+  document.getElementById('tableLabel').textContent = ui.tableLabel;
+  document.getElementById('toPaymentBtn').textContent = ui.toPaymentBtn;
+  document.getElementById('reviewTitle').textContent = ui.reviewTitle;
+  document.getElementById('reviewSub').textContent = ui.reviewSub;
+  document.getElementById('payBtn').textContent = ui.payBtn;
+  document.getElementById('sentTitle').textContent = ui.sentTitle;
+  document.getElementById('confirmedDoneBtn').textContent = ui.confirmedDoneBtn;
+  document.getElementById('langToggleLabel').textContent = currentLang === 'ar' ? 'English' : 'عربي';
+}
+
+function setLanguage(lang){
+  currentLang = lang;
+  document.documentElement.setAttribute('lang', lang === 'ar' ? 'ar' : 'en');
+  document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+  applyStaticTranslations();
+  renderNav();
+  renderMenu();
+  syncCartUI();
+  if(openModalItemId){ openItemModal(openModalItemId); }
+}
+
+document.getElementById('langToggleBtn').addEventListener('click', function(){
+  setLanguage(currentLang === 'ar' ? 'en' : 'ar');
+});
+
 // Items with more than one photo (e.g. iced + hot). The list view always
 // shows the first variant as the thumbnail; the item modal shows a small
 // toggle so the customer can flip between them.
@@ -801,7 +984,7 @@ const cart = {};
 function renderNav(){
   const nav = document.getElementById('catNav');
   nav.innerHTML = CATS.map((c,i) =>
-    '<button class="cat-pill' + (i===0?' active':'') + '" data-cat="' + c + '">' + c + '</button>'
+    '<button class="cat-pill' + (i===0?' active':'') + '" data-cat="' + c + '">' + displayCat(c) + '</button>'
   ).join('');
   nav.querySelectorAll('.cat-pill').forEach(btn=>{
     btn.addEventListener('click', ()=>{
@@ -877,19 +1060,19 @@ function renderMenu(){
       return (
       '<div class="item-row" data-id="' + item.id + '">' +
         '<div class="item-thumb">' +
-          '<img src="' + (EMBEDDED_IMAGES[thumbId] || ('images/' + thumbId + '.jpg')) + '" alt="' + item.name + '" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
+          '<img src="' + (EMBEDDED_IMAGES[thumbId] || ('images/' + thumbId + '.jpg')) + '" alt="' + displayName(item) + '" onerror="this.style.display=\'none\'; this.nextElementSibling.style.display=\'flex\';">' +
           '<div class="thumb-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg></div>' +
         '</div>' +
         '<div class="item-info">' +
-          '<div class="item-name">' + item.name + '</div>' +
-          '<div class="item-desc">' + item.desc + '</div>' +
-          '<div class="item-price">KD ' + item.price.toFixed(3) + '</div>' +
+          '<div class="item-name">' + displayName(item) + '</div>' +
+          '<div class="item-desc">' + displayDesc(item) + '</div>' +
+          '<div class="item-price">' + fmt(item.price) + '</div>' +
         '</div>' +
         '<div class="item-action" id="action-' + item.id + '"></div>' +
       '</div>'
       );
     }).join('');
-    return '<section id="sec-' + cat + '"><h2 class="section-title">' + cat + '</h2><div class="item-list">' + items + '</div></section>';
+    return '<section id="sec-' + cat + '"><h2 class="section-title">' + displayCat(cat) + '</h2><div class="item-list">' + items + '</div></section>';
   }).join('');
   MENU.forEach(item => renderItemAction(item.id));
 }
@@ -898,11 +1081,11 @@ let openModalItemId = null;
 
 function actionHtml(id, qty){
   if(qty === 0){
-    return '<button class="add-btn" onclick="addItem(\'' + id + '\')">Add</button>';
+    return '<button class="add-btn" onclick="addItem(\'' + id + '\')">' + t('addBtn') + '</button>';
   }
   return '<div class="stepper">' +
       '<button onclick="decItem(\'' + id + '\')">\u2212</button>' +
-      '<span class="qty">' + qty + '</span>' +
+      '<span class="qty">' + (currentLang === 'ar' ? toArabicDigits(qty) : qty) + '</span>' +
       '<button onclick="addItem(\'' + id + '\')">+</button>' +
     '</div>';
 }
@@ -943,8 +1126,8 @@ function openItemModal(id){
   if(!item) return;
   openModalItemId = id;
 
-  document.getElementById('itemModalName').textContent = item.name;
-  document.getElementById('itemModalDesc').textContent = item.desc;
+  document.getElementById('itemModalName').textContent = displayName(item);
+  document.getElementById('itemModalDesc').textContent = displayDesc(item);
   document.getElementById('itemModalPrice').textContent = fmt(item.price);
   document.getElementById('itemModalAction').innerHTML = actionHtml(id, cart[id] || 0);
 
@@ -1007,7 +1190,11 @@ function cartTotal(){
     return sum + item.price*pair[1];
   },0);
 }
-function fmt(n){ return 'KD ' + n.toFixed(3); }
+function fmt(n){
+  const s = 'KD ' + n.toFixed(3);
+  if(currentLang === 'ar') return 'د.ك ' + toArabicDigits(n.toFixed(3));
+  return s;
+}
 
 function syncCartUI(){
   const count = cartCount();
@@ -1016,21 +1203,22 @@ function syncCartUI(){
   const badge = document.getElementById('cartBadge');
   badge.textContent = count;
   badge.style.display = count>0 ? 'flex' : 'none';
-  document.getElementById('cartBarInfo').textContent = count + (count===1?' item':' items');
+  document.getElementById('cartBarInfo').textContent = (currentLang === 'ar' ? toArabicDigits(count) : count) + ' ' + (count===1 ? t('itemWord') : t('itemsWord'));
   document.getElementById('cartBarAmount').textContent = fmt(total);
   document.getElementById('cartBar').classList.toggle('show', count>0);
 
   const body = document.getElementById('cartBody');
   if(count===0){
-    body.innerHTML = '<div class="empty-cart">Your cart is empty. Tap an item to add it.</div>';
+    body.innerHTML = '<div class="empty-cart">' + (currentLang === 'ar' ? 'سلتك فارغة. اضغط على أي عنصر لإضافته.' : 'Your cart is empty. Tap an item to add it.') + '</div>';
   } else {
     body.innerHTML = Object.entries(cart).map(function(pair){
       const id = pair[0], qty = pair[1];
       const item = MENU.find(m=>m.id===id);
+      const qtyStr = currentLang === 'ar' ? toArabicDigits(qty) : qty;
       return '<div class="cart-line"><div>' +
-        '<div class="cl-name">' + item.name + (qty>1 ? ' \u00d7 ' + qty : '') + '</div>' +
+        '<div class="cl-name">' + displayName(item) + (qty>1 ? ' \u00d7 ' + qtyStr : '') + '</div>' +
         '<div class="cl-price">' + fmt(item.price*qty) + '</div>' +
-        '<div class="cl-remove" onclick="removeItem(\'' + id + '\')">Remove</div>' +
+        '<div class="cl-remove" onclick="removeItem(\'' + id + '\')">' + (currentLang === 'ar' ? 'إزالة' : 'Remove') + '</div>' +
         '</div></div>';
     }).join('');
   }
@@ -1106,9 +1294,10 @@ document.getElementById('toPaymentBtn').addEventListener('click', function(){
   const lines = Object.entries(cart).map(function(pair){
     const id = pair[0], qty = pair[1];
     const item = MENU.find(m=>m.id===id);
-    return '<div class="osm-row"><span>' + item.name + ' \u00d7 ' + qty + '</span><span>' + fmt(item.price*qty) + '</span></div>';
+    const qtyStr = currentLang === 'ar' ? toArabicDigits(qty) : qty;
+    return '<div class="osm-row"><span>' + displayName(item) + ' \u00d7 ' + qtyStr + '</span><span>' + fmt(item.price*qty) + '</span></div>';
   }).join('');
-  summary.innerHTML = lines + '<div class="osm-total"><span>Total</span><span>' + fmt(cartTotal()) + '</span></div>';
+  summary.innerHTML = lines + '<div class="osm-total"><span>' + (currentLang === 'ar' ? 'الإجمالي' : 'Total') + '</span><span>' + fmt(cartTotal()) + '</span></div>';
 
   goToStep('payment');
 });
