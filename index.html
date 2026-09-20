@@ -156,9 +156,7 @@
   .hero-card{
     position:relative;max-width:520px;width:100%;
     margin:0 auto;text-align:center;
-    border:1px solid #344243;
-    background:rgba(255,255,255,0.73);
-    color:var(--ink);
+    color:var(--paper);
     padding:28px 20px;
     animation:rise 0.5s ease-out both;
   }
@@ -174,18 +172,20 @@
     font-family:'Big Shoulders Custom',sans-serif;
     font-optical-sizing:auto;
     font-size:clamp(1.9rem,6.5vw,2.6rem);
-    color:#1e2c2d;
+    color:#ffffff;
     text-transform:uppercase;
     letter-spacing:4px;
     line-height:1.08;
     font-weight:800;
+    text-shadow:0 2px 10px rgba(0,0,0,0.45);
   }
   .hero p.tag{
     margin:16px auto 0;
-    color:#4a4a48;
+    color:rgba(255,255,255,0.92);
     font-size:14px;
     max-width:380px;
     line-height:1.6;
+    text-shadow:0 1px 6px rgba(0,0,0,0.45);
   }
   .hero-cta{
     display:inline-block;
@@ -620,11 +620,7 @@
 <div id="menuPage">
 
 <div class="hero">
-  <div class="hero-card">
-    <h1 id="heroTitle">THE MENU</h1>
-    <p class="tag" id="heroTag">Coffee, tea, mocktails, and food made in house. Tap anything to add it to your order.</p>
-    <button class="hero-cta" id="heroBrowseBtn" onclick="document.getElementById('catNav').scrollIntoView({behavior:'smooth'});">Browse the menu</button>
-  </div>
+  <div class="hero-card"></div>
 </div>
 
 <div class="cat-nav" id="catNav"></div>
@@ -1028,9 +1024,6 @@ function t(key){ return (currentLang === 'ar' ? UI_AR : UI_EN)[key]; }
 
 function applyStaticTranslations(){
   const ui = currentLang === 'ar' ? UI_AR : UI_EN;
-  document.getElementById('heroTitle').textContent = ui.heroTitle;
-  document.getElementById('heroTag').textContent = ui.heroTag;
-  document.getElementById('heroBrowseBtn').textContent = ui.heroBrowseBtn;
   document.getElementById('cartTitle').textContent = ui.cartTitle;
   document.getElementById('subtotalLabel').textContent = ui.subtotalLabel;
   document.getElementById('checkoutBtn').textContent = ui.checkoutBtn;
@@ -1478,64 +1471,37 @@ function equalizeTopbarSides(){
   }
 }
 
-// Keep the "ALTITUDE ROASTERS" wordmark and the "Browse the menu" button
-// no wider than the "THE MENU" hero heading (shrinking only -- text is
-// never enlarged, so it can never overflow or collide with the language/
-// Gather buttons in the top bar).
+// Keep the "ALTITUDE ROASTERS" wordmark from ever overflowing into the
+// language/Gather buttons or the cart icon (shrinking only -- text is
+// never enlarged, so it can never overflow or collide with them).
 (function(){
-  var heroHeading = document.querySelector('.hero h1');
   var brandName = document.querySelector('.brand .name');
   var brandBox = document.querySelector('.brand');
-  var heroCta = document.querySelector('.hero-cta');
-  if(!heroHeading) return;
+  if(!brandName || !brandBox) return;
 
-  var targets = [];
-  if(brandName) targets.push({el: brandName, container: brandBox});
-  if(heroCta) targets.push({el: heroCta, container: null});
-
-  targets.forEach(function(t){
-    var cs = getComputedStyle(t.el);
-    t.fontSize = parseFloat(cs.fontSize);
-    t.paddingX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) +
-                 parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth);
-  });
+  var cs = getComputedStyle(brandName);
+  var baseFontSize = parseFloat(cs.fontSize);
 
   var lastWidth = window.innerWidth;
   var MIN_SCALE = 0.4;   // never shrink past 40% of the natural size
-  var MAX_SCALE = 1.0;   // never enlarge past the natural size
 
-  function fitToHeading(){
+  function fitBrand(){
     equalizeTopbarSides();
     // Reset to CSS baseline first so repeated calls don't compound.
-    targets.forEach(function(t){ t.el.style.fontSize = t.fontSize + 'px'; });
+    brandName.style.fontSize = baseFontSize + 'px';
 
-    var targetWidth = heroHeading.getBoundingClientRect().width;
-    if(!targetWidth || targetWidth < 10) return;
+    var fullWidth = brandName.getBoundingClientRect().width;
+    var available = brandBox.getBoundingClientRect().width - 4;
+    if(!fullWidth || fullWidth < 5 || !available || available < 5) return;
 
-    targets.forEach(function(t){
-      var fullWidth = t.el.getBoundingClientRect().width;
-      var baseTextWidth = fullWidth - t.paddingX;
-      if(!baseTextWidth || baseTextWidth < 5) return;
+    var scale = available / fullWidth;
+    if(scale > 1) scale = 1;      // never enlarge
+    if(scale < MIN_SCALE) scale = MIN_SCALE;
 
-      var desiredTextWidth = targetWidth - t.paddingX;
-
-      // Never let the wordmark grow wider than the space actually left
-      // in the top bar next to the language/Gather buttons and the cart.
-      if(t.container){
-        var available = t.container.getBoundingClientRect().width - 4;
-        if(available > 0) desiredTextWidth = Math.min(desiredTextWidth, available - t.paddingX);
-      }
-      if(desiredTextWidth < 5) return;
-
-      var scale = desiredTextWidth / baseTextWidth;
-      if(scale > MAX_SCALE) scale = MAX_SCALE;
-      if(scale < MIN_SCALE) scale = MIN_SCALE;
-
-      t.el.style.fontSize = (t.fontSize * scale) + 'px';
-    });
+    brandName.style.fontSize = (baseFontSize * scale) + 'px';
   }
 
-  var run = function(){ requestAnimationFrame(fitToHeading); };
+  var run = function(){ requestAnimationFrame(fitBrand); };
 
   if(document.fonts && document.fonts.ready){
     document.fonts.ready.then(run);
