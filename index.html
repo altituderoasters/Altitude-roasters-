@@ -1455,6 +1455,25 @@ renderMenu();
 setupCategoryScrollSpy();
 syncCartUI();
 
+// Make the two top-bar side clusters (language+Gather on the left, the
+// cart icon on the right) reserve equal width, so the brand name in the
+// middle is mathematically centered on the page instead of drifting
+// toward whichever side has less in it.
+function equalizeTopbarSides(){
+  var left = document.querySelector('.topbar-left');
+  var right = document.querySelector('.topbar-actions');
+  if(!left || !right) return;
+  left.style.flexBasis = 'auto';
+  right.style.flexBasis = 'auto';
+  var leftW = left.getBoundingClientRect().width;
+  var rightW = right.getBoundingClientRect().width;
+  var max = Math.max(leftW, rightW);
+  if(max > 0){
+    left.style.flexBasis = max + 'px';
+    right.style.flexBasis = max + 'px';
+  }
+}
+
 // Keep the "ALTITUDE ROASTERS" wordmark and the "Browse the menu" button
 // no wider than the "THE MENU" hero heading (shrinking only -- text is
 // never enlarged, so it can never overflow or collide with the language/
@@ -1482,6 +1501,7 @@ syncCartUI();
   var MAX_SCALE = 1.0;   // never enlarge past the natural size
 
   function fitToHeading(){
+    equalizeTopbarSides();
     // Reset to CSS baseline first so repeated calls don't compound.
     targets.forEach(function(t){ t.el.style.fontSize = t.fontSize + 'px'; });
 
