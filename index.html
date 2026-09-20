@@ -72,6 +72,15 @@
   .brand{display:flex;flex-direction:column;align-items:center;line-height:1;grid-column:2;text-align:center;}
   .cart-btn{grid-column:3;justify-self:end;}
   .brand .name{font-family:'Big Shoulders Custom',sans-serif;font-weight:800;font-size:2rem;letter-spacing:0.01em;text-transform:uppercase;color:#344243;font-optical-sizing:auto;}
+  .brand .name,
+  .hero h1,
+  .hero-cta{
+    display:block;
+    width:min(90vw,360px);
+    margin-left:auto;margin-right:auto;
+    box-sizing:border-box;
+    text-align:center;
+  }
   .brand .place{font-size:0.72rem;color:rgba(52,66,67,0.55);margin-top:4px;}
   .cart-btn{
     position:relative;
@@ -83,7 +92,7 @@
   }
   .cart-btn:hover{opacity:0.7;}
   .topbar-actions{grid-column:3;justify-self:end;display:flex;align-items:center;gap:10px;}
-  .topbar-left{grid-column:1;justify-self:start;display:flex;align-items:center;}
+  .topbar-left{grid-column:1;justify-self:start;display:flex;align-items:center;gap:8px;}
   .lang-btn{
     display:flex;align-items:center;gap:4px;
     background:none;color:#344243;
@@ -184,8 +193,7 @@
   .hero-cta{
     display:inline-block;
     margin-top:24px;
-    width:100%;
-    max-width:380px;
+    width:auto;
     background:#344243;
     color:#fff;
     padding:17px 32px;
@@ -196,6 +204,7 @@
     letter-spacing:0.8px;
     border-radius:0;
     transition:background 0.15s ease;
+    white-space:nowrap;
   }
   .hero-cta:hover{background:var(--copper-dark);}
 
@@ -594,16 +603,16 @@
 
 <div class="topbar">
   <div class="topbar-left">
+    <button class="lang-btn" id="langToggleBtn" aria-label="Language">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#344243" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+      <span id="langToggleLabel">عربي</span>
+    </button>
     <button class="page-tab" id="tabGatherBtn" onclick="showPage('gather')">Gather</button>
   </div>
   <div class="brand" style="display:flex;align-items:center;gap:14px;">
     <span class="name">Altitude Roasters</span>
   </div>
   <div class="topbar-actions">
-    <button class="lang-btn" id="langToggleBtn" aria-label="Language">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#344243" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
-      <span id="langToggleLabel">عربي</span>
-    </button>
     <button class="cart-btn" id="cartOpenBtn" aria-label="Cart">
       <svg viewBox="0 0 24 24" fill="none" stroke="#344243" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M6 8h12l-1.2 11a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
       <span class="cart-badge" id="cartBadge" style="display:none;">0</span>
