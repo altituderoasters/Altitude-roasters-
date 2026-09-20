@@ -1086,6 +1086,14 @@ const ITEM_VARIANTS = {
     { label: 'Iced', id: 'vanilla-latte' },
     { label: 'Hot', id: 'vanilla-latte-hot' },
   ],
+  'chemex': [
+    { label: 'Hot', id: 'chemex' },
+    { label: 'Iced', id: 'world-chemex' },
+  ],
+  'world-chemex': [
+    { label: 'Hot', id: 'chemex' },
+    { label: 'Iced', id: 'world-chemex' },
+  ],
 };
 const cart = {};
 
@@ -1159,6 +1167,7 @@ function setupCategoryScrollSpy(){
 const HOME_THUMB_OVERRIDE = {
   'hojicha-latte': 'hojicha-latte-hot',
   'vanilla-latte': 'vanilla-latte-hot',
+  'red-tea': 'red-tea-iced',
 };
 
 function renderMenu(){
@@ -1240,9 +1249,12 @@ function openItemModal(id){
   document.getElementById('itemModalPrice').textContent = fmt(item.price);
   document.getElementById('itemModalAction').innerHTML = actionHtml(id, cart[id] || 0);
 
-  setModalImage(id);
-
   const variants = ITEM_VARIANTS[id];
+  // The modal's initial photo must match whichever toggle button starts
+  // active (index 0) -- not blindly the item's own id -- otherwise the
+  // photo and the highlighted Hot/Iced label can disagree.
+  setModalImage(variants ? variants[0].id : id);
+
   const switchEl = document.getElementById('itemModalVariants');
   if(variants){
     switchEl.style.display = 'flex';
