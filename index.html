@@ -66,23 +66,14 @@
     background:#ffffff;
     color:#344243;
     padding:16px 20px;
-    display:flex;align-items:center;justify-content:space-between;
+    display:flex;align-items:center;
     border-bottom:1px solid rgba(52,66,67,0.12);
   }
   .brand{
-    display:flex;flex-direction:column;align-items:center;line-height:1;text-align:center;
-    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    display:flex;align-items:center;justify-content:center;
+    flex:1 1 auto;min-width:0;overflow:hidden;
   }
-  .brand .name{font-family:'Big Shoulders Custom',sans-serif;font-weight:800;font-size:2rem;letter-spacing:0.01em;text-transform:uppercase;color:#344243;font-optical-sizing:auto;}
-  .brand .name,
-  .hero h1,
-  .hero-cta{
-    display:block;
-    width:min(90vw,360px);
-    margin-left:auto;margin-right:auto;
-    box-sizing:border-box;
-    text-align:center;
-  }
+  .brand .name{font-family:'Big Shoulders Custom',sans-serif;font-weight:800;font-size:2rem;letter-spacing:0.01em;text-transform:uppercase;color:#344243;font-optical-sizing:auto;display:inline-block;white-space:nowrap;}
   .brand .place{font-size:0.72rem;color:rgba(52,66,67,0.55);margin-top:4px;}
   .cart-btn{
     position:relative;
@@ -93,8 +84,8 @@
     transition:opacity 0.15s ease;
   }
   .cart-btn:hover{opacity:0.7;}
-  .topbar-actions{display:flex;align-items:center;gap:10px;}
-  .topbar-left{display:flex;align-items:center;gap:8px;}
+  .topbar-actions{flex:0 0 auto;display:flex;align-items:center;justify-content:flex-end;gap:10px;}
+  .topbar-left{flex:0 0 auto;display:flex;align-items:center;justify-content:flex-start;gap:8px;}
   .lang-btn{
     display:flex;align-items:center;gap:4px;
     background:none;color:#344243;
@@ -1464,37 +1455,63 @@ renderMenu();
 setupCategoryScrollSpy();
 syncCartUI();
 
-// Keep the "ALTITUDE ROASTERS" brand wordmark exactly as wide as the
-// "THE MENU" hero heading, without ever changing the heading itself.
+// Keep the "ALTITUDE ROASTERS" wordmark and the "Browse the menu" button
+// no wider than the "THE MENU" hero heading (shrinking only -- text is
+// never enlarged, so it can never overflow or collide with the language/
+// Gather buttons in the top bar).
 (function(){
   var heroHeading = document.querySelector('.hero h1');
   var brandName = document.querySelector('.brand .name');
-  if(!heroHeading || !brandName) return;
+  var brandBox = document.querySelector('.brand');
+  var heroCta = document.querySelector('.hero-cta');
+  if(!heroHeading) return;
 
-  var baseFontSize = parseFloat(getComputedStyle(brandName).fontSize);
+  var targets = [];
+  if(brandName) targets.push({el: brandName, container: brandBox});
+  if(heroCta) targets.push({el: heroCta, container: null});
+
+  targets.forEach(function(t){
+    var cs = getComputedStyle(t.el);
+    t.fontSize = parseFloat(cs.fontSize);
+    t.paddingX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) +
+                 parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth);
+  });
+
   var lastWidth = window.innerWidth;
+  var MIN_SCALE = 0.4;   // never shrink past 40% of the natural size
+  var MAX_SCALE = 1.0;   // never enlarge past the natural size
 
-  function fitBrandWidth(){
-    // Reset to the CSS baseline first so repeated calls don't compound.
-    brandName.style.fontSize = baseFontSize + 'px';
+  function fitToHeading(){
+    // Reset to CSS baseline first so repeated calls don't compound.
+    targets.forEach(function(t){ t.el.style.fontSize = t.fontSize + 'px'; });
 
     var targetWidth = heroHeading.getBoundingClientRect().width;
-    var currentWidth = brandName.getBoundingClientRect().width;
-    // Guard against transient/zero measurements (e.g. mobile browsers
-    // firing resize when the address bar hides/shows during scroll,
-    // which can momentarily report a bad layout width).
-    if(!targetWidth || !currentWidth || targetWidth < 10 || currentWidth < 10) return;
+    if(!targetWidth || targetWidth < 10) return;
 
-    var scale = targetWidth / currentWidth;
-    var newSize = baseFontSize * scale;
-    // Sanity bound: never let it collapse to an unreadably tiny size
-    // or blow up absurdly large due to a bad reading.
-    if(newSize < 8 || newSize > baseFontSize * 3) return;
+    targets.forEach(function(t){
+      var fullWidth = t.el.getBoundingClientRect().width;
+      var baseTextWidth = fullWidth - t.paddingX;
+      if(!baseTextWidth || baseTextWidth < 5) return;
 
-    brandName.style.fontSize = newSize + 'px';
+      var desiredTextWidth = targetWidth - t.paddingX;
+
+      // Never let the wordmark grow wider than the space actually left
+      // in the top bar next to the language/Gather buttons and the cart.
+      if(t.container){
+        var available = t.container.getBoundingClientRect().width - 4;
+        if(available > 0) desiredTextWidth = Math.min(desiredTextWidth, available - t.paddingX);
+      }
+      if(desiredTextWidth < 5) return;
+
+      var scale = desiredTextWidth / baseTextWidth;
+      if(scale > MAX_SCALE) scale = MAX_SCALE;
+      if(scale < MIN_SCALE) scale = MIN_SCALE;
+
+      t.el.style.fontSize = (t.fontSize * scale) + 'px';
+    });
   }
 
-  var run = function(){ requestAnimationFrame(fitBrandWidth); };
+  var run = function(){ requestAnimationFrame(fitToHeading); };
 
   if(document.fonts && document.fonts.ready){
     document.fonts.ready.then(run);
